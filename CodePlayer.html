@@ -1,0 +1,179 @@
+<html>
+	<head>		
+		<title>CodePlayer</title>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="jquery-ui/jquery-ui.js"></script>
+		<link href="jquery-ui/jquery-ui.theme.css" rel="stylesheet">
+		<link href="jquery-ui/jquery-ui.css" rel="stylesheet">
+		
+		<style type="text/css">
+			body{
+				margin:0;
+				padding:0;
+			}
+			#top-bar{
+				min-height:70px;
+				width:100%;
+				background-color:black;
+				color:white;
+			}
+			#title{
+				float:left;
+			}
+			h1{
+				font-family:sans-serif;
+				margin:15px;
+			}
+			#menu{
+				width: 285px;
+				margin: 0 auto !important;
+				padding-top: 20px;
+			}
+			.button{
+				background-color:white;
+				font-size:17px;
+				border:solid 1px black;
+			}
+			.codepane{
+				width:50%;
+				height:900px;
+				float:left;
+			}			
+			#output{
+				background-color:white;
+				color:black;
+			}
+			.clear{
+				clear:both;
+			}
+			.textbox{
+				width:100%;
+				height:100%;
+			}
+			textarea {
+				resize: none;
+			}
+			.hlighted {
+				background-color:#E0EAF1;				
+			}
+			.active{
+				background-color:#E0EAF1;
+			}
+			#css,#javascript{
+				display:none;
+			}
+			#output-content{
+				padding: 0;
+				margin: 0;
+				width:100%;
+				height:100%;
+				border:none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="top-bar">
+			<div id="title"><h1>CodePlayer</h1></div>
+			<div id="menu" >
+				<div class="ui-controlgroup ui-controlgroup-horizontal">
+					<button id="html-btn" class="button ui-widget ui-controlgroup-item ui-corner-left active">HTML</button>
+					<button id="css-btn" class="button ui-widget ui-controlgroup-item">CSS</button>
+					<button id="javascript-btn" class="button ui-widget ui-controlgroup-item">Javascript</button>
+					<button id="output-btn" class="button ui-widget ui-controlgroup-item ui-corner-right active">Output</button>
+				</div>
+			</div>
+			<div class="clear"></div>
+			<div id="html" class="codepane">
+				<textarea id="htmmltxt"  class="textbox"><h1>Hello World!</h1></textarea>
+			</div>
+			<div id="css" class="codepane">
+				<textarea id="csstxt"  class="textbox">h1{color:green;}</textarea>
+			</div>
+			<div id="javascript" class="codepane">
+				<textarea id="javascripttxt"  class="textbox" >document.getElementsByTagName("h1")[0].innerHTML = "Hello World!123";</textarea>
+			</div>
+			<div id="output" class="codepane">
+				<iframe id="output-content"></iframe>
+			</div>
+		</div>
+		<script type="text/javascript">
+			$(".button").hover(function(){
+				$(this).addClass("hlighted");
+			},function(){
+				$(this).removeClass("hlighted");
+			});
+			function autoResize(){
+				var height = $('body').height() - $('#top-bar').height();
+				$('.codepane').height(height);
+			}
+			autoResize();
+			$(window).resize(function(){
+				autoResize();
+			})
+			function updateOutput(){
+				$("#output-content").contents().find("html").html("<html><head><style type='text/css'>"+$("#csstxt").val()+"</style></head><body>"+$("#htmmltxt").val())+"</boyd></html>";
+				document.getElementById('output-content').contentWindow.eval($('#javascripttxt').val());
+			}
+			$(".button").click(function(){
+				var pane="#"+($(this).attr("id").replace("-btn",""));
+				var noVisiblePane = 0;
+				$(pane).toggle();				
+				$(".codepane").each(function(){
+					if ($(this).is(":visible")){
+						noVisiblePane++;						
+					}
+				});
+				
+				if (noVisiblePane == 0){
+					$(pane).toggle();
+					noVisiblePane++;
+					return false;
+				} 
+				var width = 100/noVisiblePane;
+				$('.codepane').width(width+"%");
+				$(this).toggleClass('active');
+			})
+			
+			updateOutput();
+			$( ".codepane" ).on('change keyup paste',function() {
+				updateOutput();
+			});
+			
+			//tab key press
+			$("textarea").keydown(function(e) {
+				if(e.keyCode === 9) { // tab was pressed
+					// get caret position/selection
+					var pane="#"+$(this).attr("id");
+					var start = this.selectionStart;
+					var end = this.selectionEnd;
+					
+					var $this = $(pane);
+					var value = $this.val();
+					var result = "\t"+value.substring(end);
+					if (start!=end){
+						result = "";
+						selectedTxt = value.substring(start,end).split("\n");
+						for (var i = 0, len = selectedTxt.length; i < len; i++) {						  
+						  result = result + "\t" + selectedTxt[i];
+						  if (i<len-1){
+								result+="\n";
+							}
+						}
+					}
+					// set textarea value to: text before caret + tab + text after caret
+					
+					
+					$(pane).val(value.substring(0, start)
+								+ result);
+
+					// put caret at right position again (add one for the tab)
+					this.selectionStart = this.selectionEnd = start + 1;
+
+					// prevent the focus lose
+					e.preventDefault();
+				}
+			});
+		</script>
+	</body>
+	
+</html>
